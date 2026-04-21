@@ -1,0 +1,9 @@
+python-dotenv
+xlrd
+xlsxwriter
+python-docx
+pydantic-settings
+pandas
+google-genai
+instructor
+streamlit
