@@ -190,4 +190,4 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             )
 
         except Exception as e:
-            st.error(f"Произошла ошибка во время обработки: {e}")
+            st.error(f"Произошла ошибка во время обработки: {e}, {e.__traceback__.tb_lineno}")
