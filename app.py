@@ -93,14 +93,29 @@ def generate_excel(results) -> bytes:
         df.to_excel(writer, sheet_name="Отчет о сверке", index=False)
 
         # автоширина столбцов
+        # worksheet = writer.sheets["Отчет о сверке"]
+        # for i, col in enumerate(df.columns):
+        #     column_length = (
+        #         max(df[col].astype(str).map(len).max(), len(col)) + 2
+        #     )
+        #     worksheet.set_column(
+        #         i, i, min(column_length, 50)
+        #     )  # ограничиваем ширину столбца 50 символов
+        
         worksheet = writer.sheets["Отчет о сверке"]
         for i, col in enumerate(df.columns):
-            column_length = (
-                max(df[col].astype(str).map(len).max(), len(col)) + 2
-            )
-            worksheet.set_column(
-                i, i, min(column_length, 50)
-            )  # ограничиваем ширину столбца 50 символов
+            # 1. Используем .str.len() вместо .map(len) - это безопаснее для пустых значений
+            content_lengths = df[col].astype(str).str.len()
+            max_content_len = content_lengths.max()
+
+            # 2. Защита от float (NaN): если колонка пустая, max() вернет NaN
+            if pd.isna(max_content_len):
+                max_content_len = 0
+
+            # 3. Вычисляем итоговую ширину, гарантированно работая с целыми числами и строками
+            column_length = max(int(max_content_len), len(str(col))) + 2
+
+            worksheet.set_column(i, i, min(column_length, 50))
 
     # здесь контекстный менеджер закрывается и вызывает метод writer.close()
 
@@ -190,4 +205,6 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             )
 
         except Exception as e:
-            st.error(f"Произошла ошибка во время обработки: {e}, {e.__traceback__.tb_lineno}")
+            st.error(
+                f"Произошла ошибка во время обработки: {e}, {e.__traceback__.tb_lineno}"
+            )
