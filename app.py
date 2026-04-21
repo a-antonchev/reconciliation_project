@@ -1,6 +1,7 @@
 import os
 import tempfile
 import io
+import traceback
 
 from google import genai
 import pandas as pd
@@ -101,7 +102,7 @@ def generate_excel(results) -> bytes:
         #     worksheet.set_column(
         #         i, i, min(column_length, 50)
         #     )  # ограничиваем ширину столбца 50 символов
-        
+
         worksheet = writer.sheets["Отчет о сверке"]
         for i, col in enumerate(df.columns):
             # 1. Используем .str.len() вместо .map(len) - это безопаснее для пустых значений
@@ -205,6 +206,8 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             )
 
         except Exception as e:
-            st.error(
-                f"Произошла ошибка во время обработки: {e}, {e.__traceback__.tb_lineno}"
-            )
+            st.error("Произошла ошибка во время обработки!")
+
+            full_traceback = traceback.format_exc()
+            with st.expander("Технические детали для разработчика"):
+                st.code(full_traceback, language="python")
