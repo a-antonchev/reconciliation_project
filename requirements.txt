@@ -2,8 +2,10 @@ python-dotenv
 xlrd
 xlsxwriter
 python-docx
-pydantic-settings
 pandas
+openpyxl
+tabulate
 google-genai
+pydantic-settings
 instructor
 streamlit
