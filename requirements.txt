@@ -1,0 +1,17 @@
+python-dotenv
+ipykernel
+openai
+anthropic
+google-genai
+pytz
+pydantic-settings
+pyyaml
+instructor
+jsonref
+pandas
+openpyxl
+python-docx
+tabulate
+xlrd
+streamlit
+xlsxwriter
