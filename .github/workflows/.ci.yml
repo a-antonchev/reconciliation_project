@@ -47,3 +47,17 @@ jobs:
         run: |
           #pytest --version
           pytest ./tests/ -vv
+
+      # 6. Проверка кода на уязвимости
+      - name: Security check with Bandit
+        run: |
+          pip install bandit
+          # -ll означает проверку уязвимостей только среднего и высокого уровня (чтобы не спамил по пустякам)
+          # -r . рекурсивно проверяет все файлы в текущей папке
+          bandit -r . -ll -ii
+
+      # 7. Проверка зависимостей на известные дыры (CVE)
+      - name: Dependency security audit
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt

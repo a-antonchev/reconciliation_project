@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Настраиваем проверку для Python пакетов
+  - package-ecosystem: "pip"
+    # Где лежит наш requirements.txt
+    directory: "/"
+    # Как часто проверять (раз в неделю)
+    schedule:
+      interval: "weekly"
+    # Автоматически добавлять ревьюеров в Pull Request (можешь указать свой логин на GitHub)
+    reviewers:
+      - "a-antonchev"
