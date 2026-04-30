@@ -12,8 +12,8 @@ on:
 jobs:
   lint-and-test:
     name: Check code quality
-    #runs-on: ubuntu-latest
-    runs-on: debian-latest
+    runs-on: ubuntu-latest
+    #runs-on: debian-latest
 
     steps:
       # 1. Клонируем код из репозитория
