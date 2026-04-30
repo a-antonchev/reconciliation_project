@@ -61,3 +61,9 @@ jobs:
         run: |
           pip install pip-audit
           pip-audit -r requirements.txt
+
+      # 8. Проверяем, что Docker-образ успешно собирается
+      - name: Build Docker Image
+        run: |
+          # Собираем образ и даем ему временное имя 'my-app-test'
+          docker build -t my-app-test .
