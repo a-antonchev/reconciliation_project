@@ -1,17 +1,17 @@
+import io
 import os
 import tempfile
-import io
 import traceback
 
-from google import genai
 import pandas as pd
 import streamlit as st
+from google import genai
 
 from constants import API_KEY
-from parser import parse_file
 from extractor import extract_specification
 from matcher import reconcile
 from models import MatchStatus
+from parser import parse_file
 
 global_client = genai.Client(api_key=API_KEY)
 
@@ -21,15 +21,11 @@ st.set_page_config(
     layout="wide",
 )
 st.title("🤖 AI Сверка спецификаций")
-st.markdown(
-    "Загрузите два документа (Word или Excel), и искусственный интеллект найдет все расхождения."
-)
+st.markdown("Загрузите два документа (Word или Excel), и искусственный интеллект найдет все расхождения.")
 
 # проверка API ключа
 if not API_KEY:
-    st.error(
-        "⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения."
-    )
+    st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
     st.stop()
 
 # --- UI: загрузка файлов ---
@@ -44,9 +40,7 @@ with col1:
 
 with col2:
     st.subheader("📄 Заявка (Проверяемый документ)")
-    target_file = st.file_uploader(
-        "Загрузите файл Заявки", type=["docx", "xlsx", "xls"], key="target"
-    )
+    target_file = st.file_uploader("Загрузите файл Заявки", type=["docx", "xlsx", "xls"], key="target")
 
 
 # `parser.py` ожидает путь к файлу на диске - создаем вспомогательную функцию
@@ -59,7 +53,8 @@ def save_uploaded_file(uploaded_file) -> str:
     suffix = os.path.splitext(uploaded_file.name)[1]
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        # `getbuffer()` - Streamlit рекомендует этот способ для быстрого чтения загруженных файлов без лишнего копирования в памяти
+        # `getbuffer()` - Streamlit рекомендует этот способ для быстрого чтения загруженных файлов
+        # без лишнего копирования в памяти
         tmp.write(uploaded_file.getbuffer())
         return tmp.name
 
@@ -94,15 +89,6 @@ def generate_excel(results) -> bytes:
         df.to_excel(writer, sheet_name="Отчет о сверке", index=False)
 
         # автоширина столбцов
-        # worksheet = writer.sheets["Отчет о сверке"]
-        # for i, col in enumerate(df.columns):
-        #     column_length = (
-        #         max(df[col].astype(str).map(len).max(), len(col)) + 2
-        #     )
-        #     worksheet.set_column(
-        #         i, i, min(column_length, 50)
-        #     )  # ограничиваем ширину столбца 50 символов
-
         worksheet = writer.sheets["Отчет о сверке"]
         for i, col in enumerate(df.columns):
             # 1. Используем .str.len() вместо .map(len) - это безопаснее для пустых значений
@@ -140,19 +126,13 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
                 target_md = parse_file(target_path)
 
                 st.write("🧠 Извлечение данных через AI (Эталон)...")
-                base_spec = extract_specification(
-                    base_md, client=global_client
-                )
+                base_spec = extract_specification(base_md, client=global_client)
 
                 st.write("🧠 Извлечение данных через AI (Заявка)...")
-                target_spec = extract_specification(
-                    target_md, client=global_client
-                )
+                target_spec = extract_specification(target_md, client=global_client)
 
                 st.write("🔍 Поиск расхождений...")
-                report = reconcile(
-                    base_spec.items, target_spec.items, client=global_client
-                )
+                report = reconcile(base_spec.items, target_spec.items, client=global_client)
 
                 status.update(
                     label="✅ Сверка завершена!",
@@ -167,9 +147,7 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
                 os.remove(target_path)
 
             # --- ВЫВОД РЕЗУЛЬТАТОВ ---
-            st.success(
-                f"Обработано позиций: Эталон ({len(base_spec.items)}), Заявка ({len(target_spec.items)})"
-            )
+            st.success(f"Обработано позиций: Эталон ({len(base_spec.items)}), Заявка ({len(target_spec.items)})")
 
             # генерируем Excel-файл
             excel_data = generate_excel(report)
@@ -187,9 +165,7 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             st.subheader("Предварительный просмотр")
 
             # для превью сделаем датафрейм чуть проще - сбрасываем модель в словарь
-            preview_df = pd.DataFrame(
-                [r.model_dump(mode="json") for r in report]
-            )
+            preview_df = pd.DataFrame([r.model_dump(mode="json") for r in report])
 
             # подсвечиваем проблемные строки цветом
             def color_rows(row):
@@ -205,7 +181,7 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
                 width="stretch",
             )
 
-        except Exception as e:
+        except Exception:
             st.error("Произошла ошибка во время обработки!")
 
             full_traceback = traceback.format_exc()

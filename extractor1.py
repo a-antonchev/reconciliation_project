@@ -1,8 +1,10 @@
 import os
+
+import instructor
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-import instructor
+
 from models import SpecificationDocument
 
 load_dotenv()
@@ -24,14 +26,14 @@ def extract_specification(document_markdown: str) -> SpecificationDocument:
     prompt = f"""
     Ты - эксперт по закупкам и анализу документов.
     Твоя задача: найти спецификацию номенклатуры в предоставленном тексте документа и извлечь её.
-    
+
     ПРАВИЛА:
     1. Игнорируй шапки договоров, реквизиты, подписи, печати и прочий юридический мусор.
     2. Извлеки только список товаров/услуг.
     3. Если артикула нет, возвращай пустую строку "".
     4. Если описание встроено в наименование, постарайся разделить их, но главное - не потеряй суть.
     5. Единицы измерения приводи к единому стандарту (шт, кг, м, упак).
-    
+
     ТЕКСТ ДОКУМЕНТА:
     {document_markdown}
     """

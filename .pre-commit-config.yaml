@@ -1,0 +1,23 @@
+repos:
+  # базовые проверки от создателей pre-commit
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+  #- repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace      # удаляет лишние пробелы на концах строк
+      - id: end-of-file-fixer        # добавляет пустую строку в конец файла
+      - id: check-yaml               # проверяет синтаксис YAML файлов
+      - id: check-added-large-files  # блокирует коммит огромных файлов (>500kb)
+      - id: debug-statements         # проверяет, не забыл ли ты print() или breakpoint()
+      - id: requirements-txt-fixer   # автоматически сортирует зависимости в файле в алфавитном порядке для улучшения читаемости и согласованности кода
+
+  # линтер и форматер Ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+  #- repo: git://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.4
+    hooks:
+      # запуск линтера (ищет ошибки)
+      - id: ruff
+        args: [ --fix ] # автоматически исправлять простые ошибки
+      # запуск форматера (красиво выравнивает код)
+      - id: ruff-format

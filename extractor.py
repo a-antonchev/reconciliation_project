@@ -1,8 +1,9 @@
 import time
+
 from google import genai
 from google.genai import types
-
 from pydantic import ValidationError
+
 from models import SpecificationDocument
 
 
@@ -16,7 +17,7 @@ def extract_specification(
     prompt = f"""
     Ты - эксперт по закупкам и анализу документов.
     Твоя задача: найти спецификацию номенклатуры в предоставленном тексте документа и извлечь её.
-    
+
     ПРАВИЛА:
     1. Игнорируй шапки договоров, реквизиты, подписи, печати и прочий юридический мусор.
     2. Извлеки только список товаров/услуг.

@@ -1,6 +1,7 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 # --- модели для извлечения из документа ---
 
@@ -22,9 +23,7 @@ class SpecItem(BaseModel):
 
 
 class SpecificationDocument(BaseModel):
-    items: List[SpecItem] = Field(
-        description="Список всех позиций из спецификации"
-    )
+    items: List[SpecItem] = Field(description="Список всех позиций из спецификации")
 
 
 # --- модели для результатов сверки ---
@@ -59,18 +58,10 @@ class ReconciliationRow(BaseModel):
 
 
 class LLMMatchpair(BaseModel):
-    baseline_name: str = Field(
-        description="Точное наименование из списка исходного документа (Эталона)"
-    )
-    target_name: str = Field(
-        description="Точное наименование из списка целевого документа"
-    )
-    reason: str = Field(
-        description="Краткое объяснение, почему это одна и та же позиция"
-    )
+    baseline_name: str = Field(description="Точное наименование из списка исходного документа (Эталона)")
+    target_name: str = Field(description="Точное наименование из списка целевого документа")
+    reason: str = Field(description="Краткое объяснение, почему это одна и та же позиция")
 
 
 class LLMMatchResult(BaseModel):
-    matches: List[LLMMatchpair] = Field(
-        description="Список пар совпадающих позиций", default_factory=list
-    )
+    matches: List[LLMMatchpair] = Field(description="Список пар совпадающих позиций", default_factory=list)

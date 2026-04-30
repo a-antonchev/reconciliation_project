@@ -5,11 +5,11 @@ from google import genai
 from google.genai import types
 
 from models import (
-    SpecItem,
-    ReconciliationRow,
-    MatchStatus,
     LLMMatchpair,
     LLMMatchResult,
+    MatchStatus,
+    ReconciliationRow,
+    SpecItem,
 )
 
 
@@ -48,13 +48,9 @@ def compare_items(base: SpecItem, target: SpecItem) -> ReconciliationRow:
         if base_description_clean and target_description_clean:
             notes.append("Описания отличаются.")
         elif base_description_clean and not target_description_clean:
-            notes.append(
-                "В целевом документе отсутствует описание, которое есть в эталоне."
-            )
+            notes.append("В целевом документе отсутствует описание, которое есть в эталоне.")
         elif not base_description_clean and target_description_clean:
-            notes.append(
-                "В целевой документ добавлено описание, которого нет в эталоне."
-            )
+            notes.append("В целевой документ добавлено описание, которого нет в эталоне.")
 
     status = MatchStatus.PARTIAL_MATCH if notes else MatchStatus.PERFECT_MATCH
 
@@ -93,15 +89,16 @@ def llm_fuzzy_match(
 
     prompt = f"""
     Твоя задача - сопоставить позиции из двух списков номенклатуры.
-    Найди пары, которые означают один и тот же товар, но могут быть написаны по-разному (синонимы, перестановка слов, сокращения).
-    
+    Найди пары, которые означают один и тот же товар, но могут быть написаны по-разному
+    (синонимы, перестановка слов, сокращения).
+
     ПРАВИЛА:
     1. Используй ТОЧНО ТЕ ЖЕ строки наименований, что переданы в списках.
     2. Если позиция из Списка А не имеет логичной пары в Списке Б, просто проигнорируй ее. Не выдумывай пары.
-    
+
     СПИСОК А (Исходный документ (Эталон)):
     {base_names}
-    
+
     СПИСОК Б (Целевой документ):
     {target_names}
     """
@@ -151,10 +148,7 @@ def reconcile(
             continue
         for t_item in reversed(unmatched_target):
             # если SKU полностью совпали, то мы нашли пару и передаем ее в `compare_items` для сверки
-            if (
-                t_item.sku
-                and t_item.sku.strip().lower() == b_item.sku.strip().lower()
-            ):
+            if t_item.sku and t_item.sku.strip().lower() == b_item.sku.strip().lower():
                 results.append(compare_items(b_item, t_item))
                 unmatched_base.remove(b_item)
                 unmatched_target.remove(t_item)
@@ -183,27 +177,19 @@ def reconcile(
             # оригинальные наименования найденных пар - так что мы можем сравнить
             # если итератор пуст, то возвращаем `None`
             b_item = next(
-                (
-                    item
-                    for item in unmatched_base
-                    if item.name == match.baseline_name
-                ),
+                (item for item in unmatched_base if item.name == match.baseline_name),
                 None,
             )
             t_item = next(
-                (
-                    item
-                    for item in unmatched_target
-                    if item.name == match.target_name
-                ),
+                (item for item in unmatched_target if item.name == match.target_name),
                 None,
             )
 
             if b_item and t_item:  # если нашли совпадающую пару
-                row = compare_items(
-                    b_item, t_item
-                )  # прогоняем через сравнение
-                row.difference_notes += f" [Сопоставлено ИИ: {match.reason}]"  # добавляем, что семантическое совпадение было по мнению LLM
+                row = compare_items(b_item, t_item)  # прогоняем через сравнение
+                row.difference_notes += (
+                    f" [Сопоставлено ИИ: {match.reason}]"  # добавляем, что семантическое совпадение было по мнению LLM
+                )
                 results.append(row)
                 unmatched_base.remove(b_item)
                 unmatched_target.remove(t_item)
@@ -257,9 +243,7 @@ if __name__ == "__main__":
             unit="шт",
             description="Сталь",
         ),
-        SpecItem(
-            sku="", name="Болт 10х50", quantity=50, unit="кг", description=""
-        ),
+        SpecItem(sku="", name="Болт 10х50", quantity=50, unit="кг", description=""),
         SpecItem(
             sku="",
             name="Скоба усиленная 200 * 700",
@@ -267,9 +251,7 @@ if __name__ == "__main__":
             unit="шт",
             description="",
         ),
-        SpecItem(
-            sku="C3", name="Шайба", quantity=200, unit="шт", description=""
-        ),
+        SpecItem(sku="C3", name="Шайба", quantity=200, unit="шт", description=""),
     ]
 
     # имитируем данные из Заявки (с ошибками и изменениями)
@@ -318,12 +300,8 @@ if __name__ == "__main__":
 
     for row in report:
         print(f"[{row.status.value}]")
-        print(
-            f"  Эталон: {row.baseline_name} ({row.baseline_qty} {row.baseline_unit})"
-        )
-        print(
-            f"  Заявка: {row.target_name} ({row.target_qty} {row.target_unit})"
-        )
+        print(f"  Эталон: {row.baseline_name} ({row.baseline_qty} {row.baseline_unit})")
+        print(f"  Заявка: {row.target_name} ({row.target_qty} {row.target_unit})")
         if row.difference_notes:
             print(f"  Заметки: {row.difference_notes}")
         print("-" * 40)

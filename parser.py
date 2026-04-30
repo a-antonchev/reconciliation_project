@@ -1,8 +1,8 @@
 import os
 import pathlib
 
-import pandas as pd
 import docx
+import pandas as pd
 
 
 def parse_excel_to_markdown(file_path: str) -> str:
@@ -62,16 +62,13 @@ def parse_docx_to_markdown(file_path: str) -> str:
         # извлекаем таблицы и перерисовываем их в markdown
         for table in doc.tables:
             for i, row in enumerate(table.rows):
-
-                # звлекаем текст из ячеек, заменяя переносы строк на пробелы, 
+                # звлекаем текст из ячеек, заменяя переносы строк на пробелы,
                 # иначе markdown-таблица сломается
-                row_data = [
-                    cell.text.strip().replace("\n", " ") for cell in row.cells
-                ]
+                row_data = [cell.text.strip().replace("\n", " ") for cell in row.cells]
 
                 # склеиваем элементы через разделители `|` и рисуем markdown-строку таблицы
                 markdown_content.append("| " + " | ".join(row_data) + " |")
-                
+
                 # если это первая строка, то добавляем разделитель по количеству ячеек (row.cells) в строке
                 if i == 0:
                     markdown_content.append("|" + "---|" * len(row.cells))
@@ -90,7 +87,7 @@ def parse_file(file_path: str) -> str:
     _, ext = os.path.splitext(file_path)
 
     # TODO: переписать через dict:
-    
+
     if ext in [".xls", ".xlsx"]:
         return parse_excel_to_markdown(file_path)
 
@@ -104,9 +101,7 @@ def parse_file(file_path: str) -> str:
         )
 
     else:
-        raise ValueError(
-            f"Неподдерживаемый формат файла: {ext}. Разрешены только .xlsx, .xls и .docx"
-        )
+        raise ValueError(f"Неподдерживаемый формат файла: {ext}. Разрешены только .xlsx, .xls и .docx")
 
 
 if __name__ == "__main__":
