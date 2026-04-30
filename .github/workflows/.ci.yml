@@ -1,0 +1,48 @@
+name: CI Pipeline
+
+# Настраиваем триггеры: когда запускать пайплайн
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-and-test:
+    name: Check code quality
+    #runs-on: ubuntu-latest
+    runs-on: debian-latest
+
+    steps:
+      # 1. Клонируем код из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Устанавливаем Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # Укажи свою версию, если она другая
+          cache: "pip"           # ПРО-ФИШКА: кэшируем зависимости, чтобы CI работал за секунды, а не минуты
+
+      # 3. Устанавливаем зависимости из твоего requirements.txt + инструменты для CI
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      # 4. Проверяем код линтером Ruff
+      - name: Lint with Ruff
+        run: |
+          # Проверяем на ошибки логики
+          ruff check .
+          # Проверяем, что код отформатирован (если нет - CI упадет с ошибкой)
+          ruff format --check .
+
+      # 5. Место под тесты (пока просто команда, чтобы убедиться, что pytest работает)
+      - name: Run Tests
+        run: |
+          pytest --version
