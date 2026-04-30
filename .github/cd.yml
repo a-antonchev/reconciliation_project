@@ -1,0 +1,46 @@
+name: CD Pipeline (Release)
+
+# Триггер: запускаем только при создании тега, начинающегося с "v" (например, v1.0.0)
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Выдаем права GitHub Actions на запись пакетов (Docker-образов) в твой репозиторий
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-docker-image:
+    name: Build and Push to GHCR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Авторизуемся в хранилище GitHub (GHCR) встроенным безопасным токеном
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Имя твоего образа в нижнем регистре
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+
+      # Собираем и пушим образ!
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Присваиваем два тега: конкретную версию (v1.0.0) и ярлык "latest" (самый свежий)
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
