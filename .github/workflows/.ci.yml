@@ -34,15 +34,16 @@ jobs:
           pip install -r requirements.txt
           pip install ruff pytest
 
-      # 4. Проверяем код линтером Ruff
+      # 4. Проверяем код  Ruff
       - name: Lint with Ruff
         run: |
-          # Проверяем на ошибки логики
+          # Проверяем линтером на ошибки логики
           ruff check .
-          # Проверяем, что код отформатирован (если нет - CI упадет с ошибкой)
+          # Проверяем форматтером, что код отформатирован (если нет - CI упадет с ошибкой)
           ruff format --check .
 
       # 5. Место под тесты (пока просто команда, чтобы убедиться, что pytest работает)
       - name: Run Tests
         run: |
-          pytest --version
+          #pytest --version
+          pytest ./tests/ -vv
