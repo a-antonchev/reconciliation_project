@@ -13,7 +13,6 @@ jobs:
   lint-and-test:
     name: Check code quality
     runs-on: ubuntu-latest
-    #runs-on: debian-latest
 
     steps:
       # 1. Клонируем код из репозитория
@@ -62,7 +61,14 @@ jobs:
           pip install pip-audit
           pip-audit -r requirements.txt
 
-      # 8. Проверяем, что Docker-образ успешно собирается
+      # 8. Линтинг Dockerfile (проверка на best practices)
+      - name: Lint Dockerfile with Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: error # Опционально: падать только на критичных ошибках, а warning пропускать
+
+      # 9. Проверяем, что Docker-образ успешно собирается
       - name: Build Docker Image
         run: |
           # Собираем образ и даем ему временное имя 'my-app-test'

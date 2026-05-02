@@ -22,6 +22,8 @@ RUN useradd -d /home/appuser -s /bin/bash -m appuser
 COPY requirements.txt .
 
 # Устанавливаем зависимости (--no-cache-dir удаляет установочный мусор pip)
+# Подавляем конкретное правило для hadolint
+# hadolint ignore=DL3013,DL3042
 RUN pip install -r requirements.txt --no-cache-dir
 
 # 6. Копируем остальной код проекта сразу с правами appuser
