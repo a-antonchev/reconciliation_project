@@ -19,9 +19,7 @@ repos:
         args: [ --fix ] # автоматически исправлять простые ошибки
       # запуск форматера (красиво выравнивает код)
       - id: ruff-format
-  - repo: https://github.com/AleksaC/hadolint-py
-    rev: v2.14.0
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
     hooks:
       - id: hadolint
-        # Опционально: игнорировать определенные правила
-        args: [--ignore, DL3008, --ignore, DL3018]
