@@ -1,3 +1,14 @@
+[tool.mypy]
+# Версия Python
+python_version = "3.11"
+# Передаем аргументы командной строки
+# (КРИТИЧНО) Не падать, если mypy не нашел исходники сторонних библиотек
+ignore_missing_imports = true
+# Предупреждать, если функция возвращает Any, хотя не должна
+warn_return_any = true
+# Предупреждать о неиспользуемых # type: ignore
+warn_unused_ignores = true
+
 [tool.ruff]
 # длина строки (по умолчанию 88, как в black, но 120 для современных мониторов удобнее)
 line-length = 120
