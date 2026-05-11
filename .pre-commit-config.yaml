@@ -9,13 +9,13 @@ repos:
       - id: check-added-large-files  # блокирует коммит огромных файлов (>500kb)
       - id: debug-statements         # проверяет, не забыл ли ты print() или breakpoint()
       - id: requirements-txt-fixer   # автоматически сортирует зависимости в файле в алфавитном порядке для улучшения читаемости и согласованности кода
-#  # mypy
-#  - repo: https://github.com/pre-commit/mirrors-mypy
-#    rev: v2.0.0
-#    hooks:
-#      - id: mypy
-#        exclude: ^tests/
-#        additional_dependencies: [streamlit]
+  # mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.0.0
+    hooks:
+      - id: mypy
+        exclude: ^tests/
+        additional_dependencies: [streamlit]
   # линтер и форматер Ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.4
