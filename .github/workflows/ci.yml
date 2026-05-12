@@ -34,9 +34,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff pytest
+          pip install ruff pytest pytest-mock
 
-      # 4. Проверяем код  Ruff
+      # 4. Проверяем код Ruff
       - name: Lint with Ruff
         run: |
           # Проверяем линтером на ошибки логики
@@ -44,8 +44,10 @@ jobs:
           # Проверяем форматтером, что код отформатирован (если нет - CI упадет с ошибкой)
           ruff format --check .
 
-      # 5. Место под тесты (пока просто команда, чтобы убедиться, что pytest работает)
-      - name: Run Tests
+      # 5. Прогоняем тесты через pytest
+      - name: Run Pytest
+#        env:
+#          GEMINI_API_KEY: "fake_api_key_789"
         run: |
           #pytest --version
           pytest ./tests/ -vv
