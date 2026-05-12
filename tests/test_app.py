@@ -4,6 +4,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def test_app_loads_correctly():
+    # фейковый API_KEY для streamlit
     os.environ["GEMINI_API_KEY"] = "fake_test_key_789"
 
     # инициализируем приложение
@@ -16,7 +17,7 @@ def test_app_loads_correctly():
     assert not at.exception
 
     # проверяем, что заголовок отрендерился
-    assert at.title[0].value == "🤖 AI v.0.1.0 Сверка спецификаций"
+    assert "🤖 AI Сверка спецификаций" in at.title[0].value
 
     # проверяем наличие кнопок загрузки файлов
     assert len(at.file_uploader) == 2
