@@ -20,7 +20,7 @@ st.set_page_config(
     page_icon=":robot_face:",
     layout="wide",
 )
-st.title("🤖 AI Сверка спецификаций (v1.0.1)")
+st.title("🤖 AI Сверка спецификаций (v1.0.2)")
 st.markdown("Загрузите два документа (Word или Excel), и искусственный интеллект найдет все расхождения.")
 
 # проверка API ключа
