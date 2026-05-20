@@ -1,3 +1,4 @@
+import asyncio
 import io
 import os
 import tempfile
@@ -109,6 +110,27 @@ def generate_excel(results) -> bytes:
     return output.getvalue()
 
 
+# асинхронные функции для параллельного выполнения парсинга и извлечения спецификации
+async def parse_both_file_async(base_path: str, target_path: str) -> tuple[str, str]:
+    """
+    Параллельно читает два файла и возвращает Markdown.
+    """
+    return await asyncio.gather(
+        asyncio.to_thread(parse_file, base_path),
+        asyncio.to_thread(parse_file, target_path),
+    )
+
+
+async def extract_both_spec_async(base_md: str, target_md: str, client: genai.Client) -> tuple:
+    """
+    Параллельно извлекает спецификации из двух Markdown текстов.
+    """
+    return await asyncio.gather(
+        asyncio.to_thread(extract_specification, base_md, client),
+        asyncio.to_thread(extract_specification, target_md, client),
+    )
+
+
 # --- ОСНОВНАЯ ЛОГИКА ---
 if st.button("🚀 Запустить сверку", type="primary", width="stretch"):
     if not baseline_file or not target_file:
@@ -121,24 +143,16 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
 
             # используем `st.status` для отображения прогресса
             with st.status("Выполняю сверку...", expanded=True) as status:
-                st.write("⏳ Чтение документов...")
-                base_md = parse_file(base_path)
-                target_md = parse_file(target_path)
+                st.write("⏳ Чтение документов (параллельно)...")
+                base_md, target_md = asyncio.run(parse_both_file_async(base_path, target_path))
 
-                st.write("🧠 Извлечение данных через AI (Эталон)...")
-                base_spec = extract_specification(base_md, client=global_client)
-
-                st.write("🧠 Извлечение данных через AI (Заявка)...")
-                target_spec = extract_specification(target_md, client=global_client)
+                st.write("🧠 Извлечение данных через AI (параллельно)...")
+                base_spec, target_spec = asyncio.run(extract_both_spec_async(base_md, target_md, global_client))
 
                 st.write("🔍 Поиск расхождений...")
                 report = reconcile(base_spec.items, target_spec.items, client=global_client)
 
-                status.update(
-                    label="✅ Сверка завершена!",
-                    state="complete",
-                    expanded=False,
-                )
+                status.update(label="✅ Сверка завершена!", state="complete", expanded=False)
 
             # удаляем временные файлы
             if os.path.exists(base_path):
