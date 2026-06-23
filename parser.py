@@ -106,7 +106,8 @@ def parse_file(file_path: str) -> str:
 
 if __name__ == "__main__":
     data_dir = "./data"
-    test_file = "specification.xlsx"
+    test_file = "specification_Proposal.xlsx"
+    # test_file = "specification_Etalon.docx"
 
     # file_path = pathlib.Path(data_dir) / test_file
     file_path = os.path.join(data_dir, test_file)

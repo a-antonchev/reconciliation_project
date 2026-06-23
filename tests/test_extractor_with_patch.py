@@ -9,20 +9,20 @@ from models import SpecificationDocument, SpecItem
 # подменяем `extractor.instructor.from_genai` на 'mock_from_genai'
 @patch("extractor.instructor.from_genai")
 def test_extract_specification_mocked(mock_from_genai):
+    # задаем фейковый ответ
     fake_response = SpecificationDocument(
         items=[SpecItem(sku="123", name="Test", quantity=10, unit="шт", description="Сталь")]
     )
-
     # задаем фейкового клиента для `instructor.from_genai()`
     mock_instructor_client = MagicMock()
 
-    # перехватываем вызов `chat.completions.create()` и задаем возвращаемое значение на fake_response
+    # перехватываем вызов `chat.completions.create()` и задаем возвращаемое значение на `fake_response`
     mock_instructor_client.chat.completions.create.return_value = fake_response
 
-    # при вызове `instructor.from_genai()` мы отдадим фейкового клиента
+    # перехватываем вызов `instructor.from_genai()` - отдаем фейкового клиента вместо клиента genai
     mock_from_genai.return_value = mock_instructor_client
 
-    # задаем базового фейкового клиента
+    # задаем базового фейкового клиента с аннотированным типом `genai.Client`
     mock_client = MagicMock(spec=genai.Client)
 
     test_doc_text = "Какой-то документ"
