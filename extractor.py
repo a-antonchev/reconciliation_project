@@ -49,13 +49,16 @@ def extract_specification(document_markdown: str, client: genai.Client) -> Speci
 
 
 if __name__ == "__main__":
-    from constants import API_KEY
+    import streamlit as st
 
-    if not API_KEY:
+    api_key = st.secrets.get("GEMINI_API_KEY")
+
+    if not api_key:
         print("API_KEY не найден. Тест отменен.")
         exit(1)
 
-    test_client = genai.Client(api_key=API_KEY)
+    test_client = genai.Client(api_key=api_key)
+
     test_md = """
     ДОГОВОР ПОСТАВКИ №123
     г. Москва

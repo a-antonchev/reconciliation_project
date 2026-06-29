@@ -8,13 +8,20 @@ import pandas as pd
 import streamlit as st
 from google import genai
 
-from constants import API_KEY
 from extractor import extract_specification
 from matcher import reconcile
 from models import MatchStatus
 from parser import parse_file
 
-global_client = genai.Client(api_key=API_KEY)
+api_key = st.secrets.get("GEMINI_API_KEY")
+
+# проверка API ключа
+if not api_key:
+    st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
+    st.stop()
+
+# задаем глобального клиента
+global_client = genai.Client(api_key=api_key)
 
 st.set_page_config(
     page_title="AI Сверка спецификаций",
@@ -23,11 +30,6 @@ st.set_page_config(
 )
 st.title("🤖 AI Сверка спецификаций (v1.0.2)")
 st.markdown("Загрузите два документа (Word или Excel), и искусственный интеллект найдет все расхождения.")
-
-# проверка API ключа
-if not API_KEY:
-    st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
-    st.stop()
 
 # --- UI: загрузка файлов ---
 
@@ -44,7 +46,7 @@ with col2:
     target_file = st.file_uploader("Загрузите файл Заявки", type=["docx", "xlsx", "xls"], key="target")
 
 
-# `parser.py` ожидает путь к файлу на диске - создаем вспомогательную функцию
+# parser.py ожидает путь к файлу на диске - создаем вспомогательную функцию
 def save_uploaded_file(uploaded_file) -> str:
     """
     Сохраняет загруженный пользователем файл в временную директорию.

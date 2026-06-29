@@ -186,10 +186,10 @@ def reconcile(
             )
 
             if b_item and t_item:  # если нашли совпадающую пару
-                row = compare_items(b_item, t_item)  # прогоняем через сравнение
-                row.difference_notes += (
-                    f" [Сопоставлено ИИ: {match.reason}]"  # добавляем, что семантическое совпадение было по мнению LLM
-                )
+                # прогоняем через сравнение
+                row = compare_items(b_item, t_item)
+                # добавляем, что семантическое совпадение было по мнению LLM
+                row.difference_notes += f" [Сопоставлено ИИ: {match.reason}]"
                 results.append(row)
                 unmatched_base.remove(b_item)
                 unmatched_target.remove(t_item)
@@ -226,13 +226,15 @@ def reconcile(
 
 
 if __name__ == "__main__":
-    from constants import API_KEY
+    import streamlit as st
 
-    if not API_KEY:
+    api_key = st.secrets.get("GEMINI_API_KEY")
+
+    if not api_key:
         print("API_KEY не найден. Тест отменен.")
         exit(1)
 
-    test_client = genai.Client(api_key=API_KEY)
+    test_client = genai.Client(api_key=api_key)
 
     # имитируем данные из Эталона
     baseline = [
