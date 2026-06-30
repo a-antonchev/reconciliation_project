@@ -1,14 +1,10 @@
-from unittest.mock import MagicMock, patch
-
-from google import genai
+from unittest.mock import MagicMock
 
 from extractor import extract_specification
-from models import SpecificationDocument, SpecItem
+from models import LLMConfig, SpecificationDocument, SpecItem
 
 
-# подменяем `extractor.instructor.from_genai` на 'mock_from_genai'
-@patch("extractor.instructor.from_genai")
-def test_extract_specification_mocked(mock_from_genai):
+def test_extract_specification_mocked():
     # задаем фейковый ответ
     fake_response = SpecificationDocument(
         items=[SpecItem(sku="123", name="Test", quantity=10, unit="шт", description="Сталь")]
@@ -19,14 +15,15 @@ def test_extract_specification_mocked(mock_from_genai):
     # перехватываем вызов `chat.completions.create()` и задаем возвращаемое значение на `fake_response`
     mock_instructor_client.chat.completions.create.return_value = fake_response
 
-    # перехватываем вызов `instructor.from_genai()` - отдаем фейкового клиента вместо клиента genai
-    mock_from_genai.return_value = mock_instructor_client
-
-    # задаем базового фейкового клиента с аннотированным типом `genai.Client`
-    mock_client = MagicMock(spec=genai.Client)
+    # задаем конфигурацию LLM
+    llm_config = LLMConfig()
 
     test_doc_text = "Какой-то документ"
-    result = extract_specification(document_markdown=test_doc_text, client=mock_client)
+    result = extract_specification(
+        document_markdown=test_doc_text,
+        instructor_client=mock_instructor_client,
+        llm_config=llm_config,
+    )
 
     assert result is not None
     assert len(result.items) == 1
@@ -39,10 +36,10 @@ def test_extract_specification_mocked(mock_from_genai):
     call_args = mock_instructor_client.chat.completions.create.call_args.kwargs
 
     # проверяем модель
-    assert call_args["model"] == "gemini-3-flash-preview"
+    assert call_args["model"] == llm_config.model_name
 
     # проверяем температуру
-    assert call_args["config"].temperature == 0.0
+    assert call_args["config"].temperature == llm_config.temperature
 
     # проверяем формат ответа
     assert call_args["response_model"] == SpecificationDocument
