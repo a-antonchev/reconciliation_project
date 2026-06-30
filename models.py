@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import List, Optional
 
+import streamlit as st
 from pydantic import BaseModel, Field
 
 # --- модели для извлечения из документа ---
@@ -38,7 +41,7 @@ class MatchStatus(str, Enum):
 
 class ReconciliationRow(BaseModel):
     status: MatchStatus
-    # данные из исходного документа (эталона)
+    # данные из исходного документа (Эталона)
     baseline_sku: Optional[str] = None
     baseline_name: Optional[str] = None
     baseline_qty: Optional[float] = None
@@ -65,3 +68,25 @@ class LLMMatchpair(BaseModel):
 
 class LLMMatchResult(BaseModel):
     matches: List[LLMMatchpair] = Field(description="Список пар совпадающих позиций", default_factory=list)
+
+
+# --- конфигурация модели ---
+
+
+class LLMConfig(BaseModel):
+    model_name: str = Field(default="gemini-3-flash-preview", description="Имя модели")
+    max_retries: int = Field(default=3, ge=1, le=5, description="Максимальное количество попыток")
+
+    @classmethod
+    def from_secrets(cls) -> LLMConfig:
+        """
+        Фабричный метод. Читает секцию [llm_settings] из st.secrets.
+        Если секции нет, возвращает пустой словарь, и Pydantic использует все default-значения.
+        """
+        # Безопасно получаем словарь настроек. Если секции [llm_settings] нет, вернется {}
+        # Используем `or {}` на случай, если секция есть, но она пустая (вернет None)
+        llm_settings = st.secrets.get("llm_settings") or {}
+
+        # распаковываем словарь в конструктор pydantic
+        # если в словаре нет ключей, то Pydantic использует default-значения
+        return cls(**llm_settings)

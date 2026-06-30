@@ -4,13 +4,14 @@ import os
 import tempfile
 import traceback
 
+import instructor
 import pandas as pd
 import streamlit as st
 from google import genai
 
 from extractor import extract_specification
 from matcher import reconcile
-from models import MatchStatus
+from models import LLMConfig, MatchStatus
 from parser import parse_file
 
 api_key = st.secrets.get("GEMINI_API_KEY")
@@ -20,8 +21,20 @@ if not api_key:
     st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
     st.stop()
 
+
+@st.cache_resource
+def get_instructor_client(api_key: str):
+    client = genai.Client(api_key=api_key)
+    return instructor.from_genai(
+        client=client,
+        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,
+    )
+
+
 # задаем глобального клиента
-global_client = genai.Client(api_key=api_key)
+instructor_client = get_instructor_client(api_key)
+# задаем конфигурацию модели
+llm_config = LLMConfig.from_secrets()
 
 st.set_page_config(
     page_title="AI Сверка спецификаций",
@@ -123,13 +136,15 @@ async def parse_both_file_async(base_path: str, target_path: str) -> tuple[str, 
     )
 
 
-async def extract_both_spec_async(base_md: str, target_md: str, client: genai.Client) -> tuple:
+async def extract_both_spec_async(
+    base_md: str, target_md: str, instructor_client: instructor.Instructor, llm_config: LLMConfig
+) -> tuple:
     """
     Параллельно извлекает спецификации из двух Markdown текстов.
     """
     return await asyncio.gather(
-        asyncio.to_thread(extract_specification, base_md, client),
-        asyncio.to_thread(extract_specification, target_md, client),
+        asyncio.to_thread(extract_specification, base_md, instructor_client, llm_config),
+        asyncio.to_thread(extract_specification, target_md, instructor_client, llm_config),
     )
 
 
@@ -143,24 +158,28 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             base_path = save_uploaded_file(baseline_file)
             target_path = save_uploaded_file(target_file)
 
-            # используем `st.status` для отображения прогресса
-            with st.status("Выполняю сверку...", expanded=True) as status:
-                st.write("⏳ Чтение документов (параллельно)...")
-                base_md, target_md = asyncio.run(parse_both_file_async(base_path, target_path))
+            try:
+                # используем `st.status` для отображения прогресса
+                with st.status("Выполняю сверку...", expanded=True) as status:
+                    st.write("⏳ Чтение документов (параллельно)...")
+                    base_md, target_md = asyncio.run(parse_both_file_async(base_path, target_path))
 
-                st.write("🧠 Извлечение данных через AI (параллельно)...")
-                base_spec, target_spec = asyncio.run(extract_both_spec_async(base_md, target_md, global_client))
+                    st.write("🧠 Извлечение данных через AI (параллельно)...")
+                    base_spec, target_spec = asyncio.run(
+                        extract_both_spec_async(base_md, target_md, instructor_client, llm_config)
+                    )
 
-                st.write("🔍 Поиск расхождений...")
-                report = reconcile(base_spec.items, target_spec.items, client=global_client)
+                    st.write("🔍 Поиск расхождений...")
+                    report = reconcile(base_spec.items, target_spec.items, instructor_client, llm_config)
 
-                status.update(label="✅ Сверка завершена!", state="complete", expanded=False)
+                    status.update(label="✅ Сверка завершена!", state="complete", expanded=False)
 
-            # удаляем временные файлы
-            if os.path.exists(base_path):
-                os.remove(base_path)
-            if os.path.exists(target_path):
-                os.remove(target_path)
+            finally:
+                # удаляем временные файлы
+                if os.path.exists(base_path):
+                    os.remove(base_path)
+                if os.path.exists(target_path):
+                    os.remove(target_path)
 
             # --- ВЫВОД РЕЗУЛЬТАТОВ ---
             st.success(f"Обработано позиций: Эталон ({len(base_spec.items)}), Заявка ({len(target_spec.items)})")

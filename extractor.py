@@ -2,10 +2,12 @@ import instructor
 from google import genai
 from google.genai import types
 
-from models import SpecificationDocument
+from models import LLMConfig, SpecificationDocument
 
 
-def extract_specification(document_markdown: str, client: genai.Client) -> SpecificationDocument:
+def extract_specification(
+    document_markdown: str, instructor_client: instructor.Instructor, llm_config: LLMConfig
+) -> SpecificationDocument:
     """
     Извлекает спецификацию из сырого текста/markdown документа.
     """
@@ -25,22 +27,15 @@ def extract_specification(document_markdown: str, client: genai.Client) -> Speci
     {document_markdown}
     """
 
-    # оборачиваем клиента gemini в instructor
-    instructor_client = instructor.from_genai(
-        client=client,
-        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,  # используем нативный структурированный вывод genai
-    )
-    model = "gemini-3-flash-preview"
-
     try:
         specification = instructor_client.chat.completions.create(
-            model=model,
+            model=llm_config.model_name,
             response_model=SpecificationDocument,
             messages=[{"role": "user", "content": prompt}],
             config=types.GenerateContentConfig(
-                temperature=0.0,  # максимально приближаем к поведению строгого алгоритма
+                temperature=0.0,  # температура генерации, для парсинга всегда 0.0
             ),
-            max_retries=3,
+            max_retries=llm_config.max_retries,
         )
         return specification
     except Exception as e:
@@ -58,6 +53,11 @@ if __name__ == "__main__":
         exit(1)
 
     test_client = genai.Client(api_key=api_key)
+    instructor_client = instructor.from_genai(
+        client=test_client,
+        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,
+    )
+    llm_config = LLMConfig()
 
     test_md = """
     ДОГОВОР ПОСТАВКИ №123
@@ -70,5 +70,5 @@ if __name__ == "__main__":
     Подписи сторон: ________
     """
 
-    result = extract_specification(test_md, test_client)
+    result = extract_specification(test_md, instructor_client, llm_config)
     print(result.model_dump_json(indent=2))  #

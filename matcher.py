@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 
 from models import (
+    LLMConfig,
     LLMMatchpair,
     LLMMatchResult,
     MatchStatus,
@@ -73,7 +74,8 @@ def compare_items(base: SpecItem, target: SpecItem) -> ReconciliationRow:
 def llm_fuzzy_match(
     base_orphans: List[SpecItem],
     target_orphans: List[SpecItem],
-    client: genai.Client,
+    instructor_client: instructor.Instructor,
+    llm_config: LLMConfig,
 ) -> List[LLMMatchpair]:
     """
     Отправляет ненайденные остатки в LLM для семантического поиска пар.
@@ -103,19 +105,13 @@ def llm_fuzzy_match(
     {target_names}
     """
 
-    instructor_client = instructor.from_genai(
-        client=client,
-        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,  # используем нативный структурированный вывод genai
-    )
-    model = "gemini-3-flash-preview"
-
     try:
         response = instructor_client.chat.completions.create(
-            model=model,
+            model=llm_config.model_name,
             response_model=LLMMatchResult,
             config=types.GenerateContentConfig(temperature=0.0),
             messages=[{"role": "user", "content": prompt}],
-            max_retries=3,
+            max_retries=llm_config.max_retries,
         )
         return response.matches
     except Exception as e:
@@ -126,7 +122,8 @@ def llm_fuzzy_match(
 def reconcile(
     base_items: List[SpecItem],
     target_items: List[SpecItem],
-    client: genai.Client,
+    instructor_client: instructor.Instructor,
+    llm_config: LLMConfig,
 ) -> List[ReconciliationRow]:
     """
     Главная функция сверки (алгоритм Водопад).
@@ -169,7 +166,7 @@ def reconcile(
     # если списки не пустые, то передаем их в `llm_fuzzy_match` для семантического поиска совпадающих пар
 
     if unmatched_base and unmatched_target:
-        llm_matches = llm_fuzzy_match(unmatched_base, unmatched_target, client)
+        llm_matches = llm_fuzzy_match(unmatched_base, unmatched_target, instructor_client, llm_config)
 
         for match in llm_matches:
             # строим итератор по условию совпадения наименования позиции в осташихся элементах `unmatched_xxx`
@@ -235,6 +232,11 @@ if __name__ == "__main__":
         exit(1)
 
     test_client = genai.Client(api_key=api_key)
+    instructor_client = instructor.from_genai(
+        client=test_client,
+        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,
+    )
+    llm_config = LLMConfig()
 
     # имитируем данные из Эталона
     baseline = [
@@ -298,7 +300,7 @@ if __name__ == "__main__":
     ]
 
     print("Начинаем сверку...\n")
-    report = reconcile(baseline, target, client=test_client)
+    report = reconcile(baseline, target, instructor_client, llm_config)
 
     for row in report:
         print(f"[{row.status.value}]")

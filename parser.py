@@ -86,8 +86,6 @@ def parse_docx_to_markdown(file_path: str) -> str:
 def parse_file(file_path: str) -> str:
     _, ext = os.path.splitext(file_path)
 
-    # TODO: переписать через dict:
-
     if ext in [".xls", ".xlsx"]:
         return parse_excel_to_markdown(file_path)
 
