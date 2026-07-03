@@ -1,0 +1,67 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+---
+
+## [v1.0.4] - 2026-07-03
+
+### Added
+- `LLMConfig` Pydantic model in `models.py` for centralizing LLM parameters (`model_name`, `max_retries`). Eliminates duplication of settings across call sites.
+- `LLMConfig.from_secrets()` factory classmethod — reads `[llm_settings]` section from `st.secrets`, falls back to defaults gracefully.
+- `get_instructor_client()` wrapped with `@st.cache_resource` in `app.py` to prevent repeated client initialization on every Streamlit re-render.
+
+### Changed
+- `extract_specification()` in `extractor.py` now accepts `instructor_client` and `LLMConfig` instead of a raw `genai.Client`.
+- `llm_fuzzy_match()` and `reconcile()` in `matcher.py` now accept `instructor_client` and `LLMConfig`.
+- `temperature` removed from `LLMConfig` (YAGNI) — it is a project-wide constant `0.0` and is now hardcoded at each LLM call site.
+- `difference_notes` field in `ReconciliationRow` changed from `Optional[str] = None` to `str = ""` — prevents `TypeError` on string concatenation in the LLM fuzzy match stage.
+
+### Performance
+- `reconcile()` algorithm (Stage 1 & 2) refactored from O(N²) nested loops to O(N) using `defaultdict` hash maps and `pop()` for O(1) element extraction. Eliminates performance degradation on large specifications with duplicate SKUs or names.
+
+### Fixed
+- Temporary files (`base_path`, `target_path`) are now guaranteed to be deleted even if an exception occurs during reconciliation — wrapped in `try...finally` in `app.py`.
+- `test_app.py`: replaced `os.environ["GEMINI_API_KEY"]` with `at.secrets["GEMINI_API_KEY"]` — fixes `test_app` failure in GitHub Actions where `os.environ` is not visible to `st.secrets` inside `AppTest`.
+- `test_extractor_with_patch.py`: updated temperature assertion from `llm_config.temperature` to constant `0.0` after removal of the field from `LLMConfig`.
+
+### Refactored
+- Renamed `global_instructor_client` → `instructor_client`, `global_llm_config` → `llm_config` in `app.py`.
+- Renamed `model` → `model_name` in `LLMConfig` to avoid conflict with Pydantic internals.
+- Removed dead `TODO` comment in `parser.py`.
+- Ruff `F401` (unused imports) auto-fix enabled in `pyproject.toml`.
+
+---
+
+## [v1.0.3] - 2026-06-27
+
+### Added
+- Async parallel processing: `parse_both_file_async()` and `extract_both_spec_async()` using `asyncio.gather` + `asyncio.to_thread` for concurrent file reading and LLM extraction.
+
+---
+
+## [v1.0.2] - 2026-06-20
+
+### Added
+- Initial Streamlit UI with file uploaders for baseline and target documents.
+- Excel report generation with auto-column widths.
+- Color-coded preview table (green / yellow / red by match status).
+
+---
+
+## [v1.0.1] - 2026-06-15
+
+### Fixed
+- Minor fixes to `test_app.py`.
+
+---
+
+## [v1.0.0] - 2026-06-10
+
+### Added
+- Initial release.
+- `parser.py`: parsing `.docx` and `.xlsx` files to Markdown.
+- `extractor.py`: LLM-based specification extraction via `instructor` + Gemini.
+- `matcher.py`: 4-stage waterfall reconciliation algorithm (SKU match → Name match → LLM fuzzy match → orphans).
+- `models.py`: Pydantic models for `SpecItem`, `SpecificationDocument`, `ReconciliationRow`, `MatchStatus`, `LLMMatchResult`.
