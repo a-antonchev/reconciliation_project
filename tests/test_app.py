@@ -1,14 +1,12 @@
-import os
-
 from streamlit.testing.v1 import AppTest
 
 
 def test_app_loads_correctly():
-    # фейковый API_KEY для streamlit
-    os.environ["GEMINI_API_KEY"] = "fake_test_key_789"
-
     # инициализируем приложение
     at = AppTest.from_file("app.py")
+
+    # фейковый API_KEY для streamlit
+    at.secrets["GEMINI_API_KEY"] = "fake_test_key_789"
 
     # запускаем приложение
     at.run(timeout=10)
