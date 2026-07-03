@@ -38,8 +38,8 @@ def test_extract_specification_mocked():
     # проверяем модель
     assert call_args["model"] == llm_config.model_name
 
-    # проверяем температуру
-    assert call_args["config"].temperature == llm_config.temperature
+    # проверяем температуру (захардкожена в extractor.py как константа 0.0)
+    assert call_args["config"].temperature == 0.0
 
     # проверяем формат ответа
     assert call_args["response_model"] == SpecificationDocument
