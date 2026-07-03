@@ -1,4 +1,5 @@
-from typing import List
+from collections import defaultdict
+from typing import DefaultDict, List, Optional
 
 import instructor
 from google import genai
@@ -131,36 +132,61 @@ def reconcile(
 
     results: List[ReconciliationRow] = []
 
-    # создаем копии списков, из которых будем удалять найденные позиции
-    unmatched_base = base_items.copy()
-    unmatched_target = target_items.copy()
+    # Множество id() для уже сопоставленных позиций из Заявки,
+    # чтобы не сопоставить одну позицию дважды
+    matched_target_ids = set()
 
     # --- ЭТАП 1: точное совпадение по SKU ---
-    # внимание: сравниваются значения, приведенные к нижнему регистру
-    # идем с конца для безопасного удаления элементов из списка
-    # `remove` удаляет элемент и сдвигает индексы, при `reversed` мы удаляем элементы с конца,
-    # индексы для тех элементов, которые остались, не сдвигаются
-    for b_item in reversed(unmatched_base):
-        if not b_item.sku:
-            continue
-        for t_item in reversed(unmatched_target):
-            # если SKU полностью совпали, то мы нашли пару и передаем ее в `compare_items` для сверки
-            if t_item.sku and t_item.sku.strip().lower() == b_item.sku.strip().lower():
+    # Индексируем целевые позиции по SKU (сохраняем списки на случай дубликатов)
+    target_sku_map: DefaultDict[str, List[SpecItem]] = defaultdict(list)
+    for t_item in target_items:
+        if t_item.sku:
+            # если в target есть одинаковые позиции по sku, то в словаре под ключом sku будет список SpecItem
+            target_sku_map[t_item.sku.strip().lower()].append(t_item)
+
+    unmatched_base = []
+    for b_item in base_items:
+        matched = False
+        if b_item.sku:
+            sku_key = b_item.sku.strip().lower()
+            # если в target есть элемент с ключом из base и элемент по этому ключу не пустой список:
+            # if sku_key in target_sku_map and target_sku_map[sku_key]: - короткий вариант ниже
+            if target_sku_map.get(sku_key):
+                # то извлекаем его с помощью pop() для ускорения - извлекает элемент с
+                # конца списка за O(1), т.к. нам неважно, какую из одинаковых по sku позиций мы извлечем (с точки зрения
+                # алгоритма они идентичны)
+                t_item = target_sku_map[sku_key].pop()
                 results.append(compare_items(b_item, t_item))
-                unmatched_base.remove(b_item)
-                unmatched_target.remove(t_item)
-                break
+                # добавляем в множество сопоставленных позиций Заявки id позиции - ссылка живет до конца функции
+                matched_target_ids.add(id(t_item))
+                matched = True
+
+        # Если совпадения по SKU нет (или SKU пустой), позиция идет в следующий этап
+        if not matched:
+            unmatched_base.append(b_item)
+
+    # Отфильтровываем Заявку: оставляем только те позиции, которые еще не сопоставлены
+    unmatched_target = [t for t in target_items if id(t) not in matched_target_ids]
 
     # --- ЭТАП 2: точное совпадение по наименованию ---
-    # внимание: сравниваются значения, приведенные к нижнему регистру
-    for b_item in reversed(unmatched_base):
-        for t_item in reversed(unmatched_target):
-            # если наименования полностью совпали, то мы нашли пару и передаем ее в `compare_items` для сверки
-            if t_item.name.strip().lower() == b_item.name.strip().lower():
-                results.append(compare_items(b_item, t_item))
-                unmatched_base.remove(b_item)
-                unmatched_target.remove(t_item)
-                break
+    # Индексируем оставшиеся целевые позиции по наименованию
+    target_name_map: DefaultDict[str, List[SpecItem]] = defaultdict(list)
+    for t_item in unmatched_target:
+        target_name_map[t_item.name.strip().lower()].append(t_item)
+
+    unmatched_base_after_name = []
+    for b_item in unmatched_base:
+        name_key = b_item.name.strip().lower()
+        if target_name_map.get(name_key):
+            t_item = target_name_map[name_key].pop()
+            results.append(compare_items(b_item, t_item))
+            matched_target_ids.add(id(t_item))
+        else:
+            unmatched_base_after_name.append(b_item)
+
+    # Обновляем списки ненайденных позиций для LLM и финального этапа недостач/излишков
+    unmatched_base = unmatched_base_after_name
+    unmatched_target = [t for t in unmatched_target if id(t) not in matched_target_ids]
 
     # --- ЭТАП 3: LLM Fuzzy Match (Нечеткое совпадение) ---
     # если списки не пустые, то передаем их в `llm_fuzzy_match` для семантического поиска совпадающих пар
@@ -173,23 +199,21 @@ def reconcile(
             # и наименования в найденных парах в `llm_fuzzy_match` - в ней мы указывали LLM оставлять
             # оригинальные наименования найденных пар - так что мы можем сравнить
             # если итератор пуст, то возвращаем `None`
-            b_item = next(
-                (item for item in unmatched_base if item.name == match.baseline_name),
-                None,
+            matched_b_item: Optional[SpecItem] = next(
+                (item for item in unmatched_base if item.name == match.baseline_name), None
             )
-            t_item = next(
-                (item for item in unmatched_target if item.name == match.target_name),
-                None,
+            matched_t_item: Optional[SpecItem] = next(
+                (item for item in unmatched_target if item.name == match.target_name), None
             )
 
-            if b_item and t_item:  # если нашли совпадающую пару
+            if matched_b_item and matched_t_item:  # если нашли совпадающую пару
                 # прогоняем через сравнение
-                row = compare_items(b_item, t_item)
+                row = compare_items(matched_b_item, matched_t_item)
                 # добавляем, что семантическое совпадение было по мнению LLM
                 row.difference_notes += f" [Сопоставлено ИИ: {match.reason}]"
                 results.append(row)
-                unmatched_base.remove(b_item)
-                unmatched_target.remove(t_item)
+                unmatched_base.remove(matched_b_item)
+                unmatched_target.remove(matched_t_item)
 
     # --- ЭТАП 4: недостача и излишки ---
     # все позиции, которые остались определяем в недостачи и излишки

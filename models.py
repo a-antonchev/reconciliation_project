@@ -54,8 +54,8 @@ class ReconciliationRow(BaseModel):
     target_unit: Optional[str] = None
     target_description: Optional[str] = None
     # комментарий системы
-    difference_notes: Optional[str] = Field(
-        default=None,
+    difference_notes: str = Field(
+        default="",
         description="Описание расхождений (например: 'Количество: 5 -> 4')",
     )
 
