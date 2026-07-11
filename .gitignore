@@ -1,9 +1,16 @@
+.venv/
 __pycache__/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
-.vscode
-.streamlit
+.vscode/*
+# разрешить настройки проекта
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.streamlit/
 tasks/
 data/
 .env

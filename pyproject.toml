@@ -1,3 +1,45 @@
+[project]
+name = "reconciliation-project"
+version = "1.0.4"
+description = "Automating document reconciliation using LLM"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.116.0",
+    "google-genai>=2.11.0",
+    "instructor>=1.15.4",
+    "jsonref>=1.1.0",
+    "openai>=2.45.0",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.3",
+    "pydantic-settings>=2.14.2",
+    "python-docx>=1.2.0",
+    "python-dotenv>=1.2.2",
+    "pytz>=2026.2",
+    "pyyaml>=6.0.3",
+    "streamlit>=1.59.1",
+    "tabulate>=0.10.0",
+    "xlrd>=2.0.2",
+    "xlsxwriter>=3.2.9",
+]
+
+[tool.ruff]
+# длина строки (по умолчанию 88, как в black, но 120 для современных мониторов удобнее)
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# включаем базовые правила (E - ошибки, F - логика, I - сортировка импортов)
+select = ["E", "F", "I"]
+unfixable = ["F401"]  # не удалять неиспользуемые import
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.21",
+]
+
 #[tool.mypy]
 ## Версия Python
 #python_version = "3.11"
@@ -8,13 +50,3 @@
 #warn_return_any = true
 ## Предупреждать о неиспользуемых # type: ignore
 #warn_unused_ignores = true
-
-[tool.ruff]
-# длина строки (по умолчанию 88, как в black, но 120 для современных мониторов удобнее)
-line-length = 120
-target-version = "py311"
-
-[tool.ruff.lint]
-# включаем базовые правила (E - ошибки, F - логика, I - сортировка импортов)
-select = ["E", "F", "I"]
-# unfixable = ["F401"]  # не удалять неиспользуемые import

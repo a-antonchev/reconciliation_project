@@ -14,7 +14,11 @@ from matcher import reconcile
 from models import LLMConfig, MatchStatus
 from parser import parse_file
 
-api_key = st.secrets.get("GEMINI_API_KEY")
+# получаем секцию настроек
+llm_settings = st.secrets.get("llm_settings", {})
+
+# достаем ключ из этой секции
+api_key = llm_settings.get("GEMINI_API_KEY")
 
 # проверка API ключа
 if not api_key:
@@ -41,7 +45,7 @@ st.set_page_config(
     page_icon=":robot_face:",
     layout="wide",
 )
-st.title("🤖 AI Сверка спецификаций (v1.0.2)")
+st.title("🤖 AI Сверка спецификаций")
 st.markdown("Загрузите два документа (Word или Excel), и искусственный интеллект найдет все расхождения.")
 
 # --- UI: загрузка файлов ---

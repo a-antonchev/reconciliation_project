@@ -249,7 +249,7 @@ def reconcile(
 if __name__ == "__main__":
     import streamlit as st
 
-    api_key = st.secrets.get("GEMINI_API_KEY")
+    api_key = st.secrets.get("llm_settings", {}).get("GEMINI_API_KEY")
 
     if not api_key:
         print("API_KEY не найден. Тест отменен.")

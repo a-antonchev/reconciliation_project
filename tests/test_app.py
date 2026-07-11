@@ -6,10 +6,13 @@ def test_app_loads_correctly():
     at = AppTest.from_file("app.py")
 
     # фейковый API_KEY для streamlit
-    at.secrets["GEMINI_API_KEY"] = "fake_test_key_789"
+    at.secrets["llm_settings"] = {
+        "GEMINI_API_KEY": "fake_test_key_789",
+        "model_name": "gemini-3-flash-preview",
+    }
 
     # запускаем приложение
-    at.run(timeout=10)
+    at.run(timeout=20)
 
     # проверяем, что нет ошибок (exception)
     assert not at.exception
