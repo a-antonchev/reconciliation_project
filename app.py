@@ -31,7 +31,7 @@ def get_instructor_client(api_key: str):
     client = genai.Client(api_key=api_key)
     return instructor.from_genai(
         client=client,
-        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,
+        mode=instructor.Mode.JSON,
     )
 
 

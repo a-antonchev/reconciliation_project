@@ -55,7 +55,7 @@ if __name__ == "__main__":
     test_client = genai.Client(api_key=api_key)
     instructor_client = instructor.from_genai(
         client=test_client,
-        mode=instructor.Mode.GENAI_STRUCTURED_OUTPUTS,
+        mode=instructor.Mode.JSON,
     )
     llm_config = LLMConfig()
 
