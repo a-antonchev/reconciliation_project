@@ -6,6 +6,7 @@ import traceback
 
 import instructor
 import pandas as pd
+import sentry_sdk
 import streamlit as st
 from google import genai
 
@@ -24,6 +25,12 @@ api_key = llm_settings.get("GEMINI_API_KEY")
 if not api_key:
     st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
     st.stop()
+
+# инициализация GlitchTip/Sentry
+glitchtip_settings = st.secrets.get("glitchtip_settings", {})
+glitchtip_dsn = glitchtip_settings.get("DSN")
+if glitchtip_dsn:
+    sentry_sdk.init(dsn=glitchtip_dsn)
 
 
 @st.cache_resource
