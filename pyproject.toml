@@ -21,6 +21,7 @@ dependencies = [
     "tabulate>=0.10.0",
     "xlrd>=2.0.2",
     "xlsxwriter>=3.2.9",
+    "sentry-sdk>=2.0.0",
 ]
 
 [tool.ruff]
