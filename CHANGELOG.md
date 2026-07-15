@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `AGENTS.md` and `.agents/settings.json` — project-specific AI developer guidelines and IDE integration.
 - GlitchTip/Sentry integration (`sentry-sdk`) initialized in `app.py` for centralized error tracking, including ADR (`docs/design/glitchtip_integration.md`).
 
+### Refactored
+- `pyproject.toml` and `tests/test_app.py`: updated `ruff` linting rules and removed unused imports to satisfy the new rules.
+
 ### Chore
 - `.pre-commit-config.yaml`: updated `ruff` hook to v0.15.21, switched hook id from `ruff` to `ruff-check`.
 - `.gitignore`: added `.venv/`, selective whitelist for `.vscode/` files, fixed `.streamlit/` trailing slash, and ignored `temp*`, `.agents/`, `.cline_mcp_settings.json`.
