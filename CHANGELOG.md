@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v1.0.5] - 2026-07-15
+
 ### Changed
 - `instructor.Mode.GENAI_STRUCTURED_OUTPUTS` replaced with `instructor.Mode.JSON` in `app.py`, `extractor.py`, `matcher.py` — removes `DeprecationWarning` from instructor v3.0.
 - `test_app.py`: secrets updated to two-level structure `at.secrets["llm_settings"]` including `GEMINI_API_KEY` and `model_name`.
