@@ -1,7 +1,13 @@
 {
+  "permissions": {
+    "deny": [
+      "read_file(/media/antonchev/usb/ai/_practicum/reconciliation_project/.env)",
+      "read_file(/media/antonchev/usb/ai/_practicum/reconciliation_project/.streamlit/secrets*)"
+    ]
+  },
   "context": {
     "fileName": [
-      "./AGENTS.md"
+      "/media/antonchev/usb/ai/_practicum/reconciliation_project/AGENTS.md"
     ]
   }
 }
