@@ -16,3 +16,5 @@ data/
 .env
 temp*
 *.ipynb
+./qwen/AGENTS.local.md
+./agents/settings.json
