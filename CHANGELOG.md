@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Replaced `sentry-sdk` (GlitchTip) with `axiom-py` + `python-json-logger` for structured logging to Axiom with console fallback.
+- `setup_axiom_logger()` wrapped with `@st.cache_resource` in `app.py` for lazy initialization and handler deduplication.
+- `logger.error()` added in except block for critical error logging with traceback.
+
+### Added
+- `test_axiom_logger_console_fallback` and `test_axiom_logger_with_config` tests for axiom-py logging integration.
+- `pre-commit` added to dev dependency group.
+
+### Removed
+- `sentry-sdk` dependency (was causing dependency conflicts).
+- `docs/design/glitchtip_integration.md` (replaced by axiom-py ADR).
+- `.codebase-memory/` added to `.gitignore`.
+
 ## [v1.0.5] - 2026-07-15
 
 ### Changed
