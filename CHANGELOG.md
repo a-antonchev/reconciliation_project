@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v1.0.6] - 2026-07-18
+
 ### Changed
 - Replaced `sentry-sdk` (GlitchTip) with `axiom-py` + `python-json-logger` for structured logging to Axiom with console fallback.
 - `setup_axiom_logger()` wrapped with `@st.cache_resource` in `app.py` for lazy initialization and handler deduplication.
