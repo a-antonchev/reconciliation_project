@@ -63,7 +63,7 @@ markupsafe==3.0.3
 matplotlib-inline==0.2.2
 mdurl==0.1.2
 multidict==6.7.1
-narwhals==2.23.0
+narwhals==2.24.0
 nest-asyncio2==1.7.2
 nodeenv==1.10.0
 numpy==2.4.6 ; python_full_version < '3.12'
