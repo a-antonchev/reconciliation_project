@@ -1,14 +1,16 @@
 import asyncio
 import io
+import logging
 import os
 import tempfile
 import traceback
 
+import axiom_py
 import instructor
 import pandas as pd
-import sentry_sdk
 import streamlit as st
 from google import genai
+from pythonjsonlogger.json import JsonFormatter
 
 from extractor import extract_specification
 from matcher import reconcile
@@ -26,12 +28,6 @@ if not api_key:
     st.error("⚠️ Не найден GEMINI_API_KEY. Пожалуйста, установите переменную окружения.")
     st.stop()
 
-# инициализация GlitchTip/Sentry
-glitchtip_settings = st.secrets.get("glitchtip_settings", {})
-glitchtip_dsn = glitchtip_settings.get("DSN")
-if glitchtip_dsn:
-    sentry_sdk.init(dsn=glitchtip_dsn)
-
 
 @st.cache_resource
 def get_instructor_client(api_key: str):
@@ -42,10 +38,43 @@ def get_instructor_client(api_key: str):
     )
 
 
+@st.cache_resource
+def setup_axiom_logger() -> logging.Logger:
+    axiom_settings = st.secrets.get("axiom_settings", {})
+    token = axiom_settings.get("TOKEN")
+    dataset = axiom_settings.get("DATASET")
+    edge = axiom_settings.get("EDGE")
+
+    formatter = JsonFormatter(
+        "%(asctime)s %(levelname)s %(message)s",
+        json_ensure_ascii=False,
+    )
+    logger = logging.getLogger("reconciliation_project")
+    logger.setLevel(logging.INFO)
+
+    if logger.handlers:
+        return logger
+
+    if token and dataset:
+        client = axiom_py.Client(token=token, edge=edge or None)
+        axiom_handler = axiom_py.logging.AxiomHandler(client, dataset)
+        axiom_handler.setFormatter(formatter)
+        logger.addHandler(axiom_handler)
+    else:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+    return logger
+
+
 # задаем глобального клиента
 instructor_client = get_instructor_client(api_key)
 # задаем конфигурацию модели
 llm_config = LLMConfig.from_secrets()
+
+# задаем логгер
+logger = setup_axiom_logger()
 
 st.set_page_config(
     page_title="AI Сверка спецификаций",
@@ -228,6 +257,7 @@ if st.button("🚀 Запустить сверку", type="primary", width="stre
             )
 
         except Exception:
+            logger.error("Критическая ошибка при сверке", exc_info=True)
             st.error("Произошла ошибка во время обработки!")
 
             full_traceback = traceback.format_exc()

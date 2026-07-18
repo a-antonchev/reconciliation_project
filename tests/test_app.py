@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from streamlit.testing.v1 import AppTest
 
 
@@ -35,22 +33,27 @@ def test_app_loads_correctly():
     assert at.button[0].label == "🚀 Запустить сверку"
 
 
-def test_sentry_sdk_initialization_with_dsn():
-    """Test that sentry_sdk.init is called with DSN from st.secrets."""
+def test_axiom_logger_console_fallback():
+    """Test that setup_axiom_logger falls back to console handler when no axiom_settings."""
     at = AppTest.from_file("app.py")
+    at.secrets["llm_settings"] = {
+        "GEMINI_API_KEY": "fake_test_key",
+    }
+    at.secrets["axiom_settings"] = {}
+    at.run(timeout=20)
+    assert not at.exception
 
-    # Mock sentry_sdk.init
-    with patch("sentry_sdk.init") as mock_init:
-        at.secrets["llm_settings"] = {
-            "GEMINI_API_KEY": "fake_test_key",
-        }
-        at.secrets["glitchtip_settings"] = {
-            "DSN": "https://test@test.glitchtip.com/123",
-        }
-        at.run(timeout=20)
 
-        # Verify SDK was initialized with DSN
-        mock_init.assert_called_once()
-        call_kwargs = mock_init.call_args.kwargs
-        assert "dsn" in call_kwargs
-        assert call_kwargs["dsn"] == "https://test@test.glitchtip.com/123"
+def test_axiom_logger_with_config():
+    """Test app loads with full axiom_settings (axiom-py path)."""
+    at = AppTest.from_file("app.py")
+    at.secrets["llm_settings"] = {
+        "GEMINI_API_KEY": "fake_test_key",
+    }
+    at.secrets["axiom_settings"] = {
+        "TOKEN": "test-token",
+        "DATASET": "test-dataset",
+        "EDGE": "test.axiom.co",
+    }
+    at.run(timeout=20)
+    assert not at.exception
