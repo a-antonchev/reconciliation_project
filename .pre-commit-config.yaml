@@ -19,18 +19,19 @@ repos:
 #        exclude: ^tests/
 #        additional_dependencies: [streamlit]
 
-  # линтер и форматер Ruff
+  # Ruff
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.21
     hooks:
-      # запуск линтера (ищет ошибки)
+      # линтер
       - id: ruff-check
-        types_or: [ python, pyi, pyproject ]
-        args: [ --fix, "--extend-select=I,E", "--ignore=F401" ] # автоматически исправляет ошибки (Import, Errors, игнорируем удаление неиспользуемых импортов)
-      # запуск форматера (красиво выравнивает код)
+        types_or: [python, pyi, pyproject]
+        args: [--fix]
+      # форматер
       - id: ruff-format
+        types_or: [python, pyi, pyproject]
 
-  # hadolint - чекер Dockerfile
+  # hadolint - check Dockerfile
   - repo: https://github.com/hadolint/hadolint
     rev: v2.12.0
     hooks:

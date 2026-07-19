@@ -1,0 +1,32 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Запускать каждый понедельник
+  workflow_dispatch: # Кнопка для ручного запуска
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Update uv.lock and requirements.txt
+        run: |
+          # обновляем uv.lock последними совместимыми версиями зависимостей
+          uv lock --upgrade
+          # формируем новый requirement.txt
+          uv export --format requirements-txt --no-annotate --no-hashes > requirements.txt
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(deps): update dependencies via uv"
+          title: "📦 Update Python dependencies"
+          body: "Автоматическое обновление зависимостей через `uv lock --upgrade`."
+          branch: "chore/update-deps"
+          delete-branch: true
