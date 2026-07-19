@@ -2,6 +2,15 @@
   "python-envs.defaultEnvManager": "ms-python.python:venv",
   "python-envs.defaultPackageManager": "ms-python.python:pip",
   "python-envs.alwaysUseUv": true,
+
+  "ruff.configurationPreference": "editorFirst",
+  "ruff.lint.extend-select": ["W"],
+  "ruff.configuration": {
+    "lint": {
+      "unfixable": []
+    }
+  },
+
   "[python]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "charliermarsh.ruff",
@@ -10,9 +19,10 @@
       "source.organizeImports.ruff": "explicit"
     }
   },
-  "notebook.formatOnSave.enabled": true,
+
+  "notebook.formatOnSave.enabled": false,
   "notebook.codeActionsOnSave": {
-    "notebook.source.fixAll.ruff": "explicit",
-    "notebook.source.organizeImports.ruff": "explicit"
+    "notebook.source.fixAll.ruff": "never",
+    "notebook.source.organizeImports.ruff": "never"
   }
 }

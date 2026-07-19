@@ -22,49 +22,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Устанавливаем Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # 2. Устанавливаем uv
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
         with:
-          python-version: "3.11" # Укажи свою версию, если она другая
-          cache: "pip"           # ПРО-ФИШКА: кэшируем зависимости, чтобы CI работал за секунды, а не минуты
+          python-version: "3.11"
+          enable-cache: true
+          # используем uv.lock для формирования ключа хеша для GH Actions (если хеш не изменился, то не нужно заново скачивать зависимости)
+          cache-dependency-glob: "uv.lock"
 
-      # 3. Устанавливаем зависимости из твоего requirements.txt + инструменты для CI
+      # 3. Устанавливаем зависимости
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install ruff pytest pytest-mock
+        # установка набора зависимостей, которые зафиксированы в uv.lock + не ставим группу dev
+        run: uv sync --frozen --no-group dev
 
       # 4. Проверяем код Ruff
       - name: Lint with Ruff
         run: |
-          # Проверяем линтером на ошибки логики
-          ruff check .
-          # Проверяем форматтером, что код отформатирован (если нет - CI упадет с ошибкой)
-          ruff format --check .
+          # Проверяем ошибки логики
+          uvx ruff check .
+          # Проверяем форматтером
+          uvx ruff format --check .
 
       # 5. Прогоняем тесты через pytest
       - name: Run Pytest
-#        env:
-#          GEMINI_API_KEY: "fake_api_key_789"
-        run: |
-          #pytest --version
-          pytest ./tests/ -vv
+        run: uvx pytest ./tests/ -vv
 
       # 6. Проверка кода на уязвимости
       - name: Security check with Bandit
-        run: |
-          pip install bandit
-          # -ll означает проверку уязвимостей только среднего и высокого уровня (чтобы не спамил по пустякам)
-          # -r . рекурсивно проверяет все файлы в текущей папке
-          bandit -r . -ll -ii
+        run: uvx bandit -r . -ll -ii
+          # -ll проверка уязвимостей среднего и высокого уровня
+          # -r . рекурсивная проверка всех файлов в текущей папке
 
       # 7. Проверка зависимостей на известные дыры (CVE)
       - name: Dependency security audit
-        run: |
-          pip install pip-audit
-          pip-audit -r requirements.txt
+        run: uvx pip-audit -r requirements.txt
 
   # ==========================================
   # JOB 2: Проверка Инфраструктуры (Docker)

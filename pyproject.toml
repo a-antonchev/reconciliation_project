@@ -35,6 +35,12 @@ target-version = "py311"
 select = ["E", "F", "I"]
 #unfixable = ["F401"]  # не удалять неиспользуемые import
 
+[tool.ruff.lint.per-file-ignores]
+# Игнорируем проверку неиспользуемых импортов в файлах тестов,
+# так как фикстура mocker доступна глобально или импортируется неявно.
+"test_*.py" = ["F401"]
+"__init__.py" = ["F401"]
+
 [dependency-groups]
 dev = [
     "ipykernel>=7.3.0",
@@ -42,14 +48,3 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.15.21",
 ]
-
-#[tool.mypy]
-## Версия Python
-#python_version = "3.11"
-## Передаем аргументы командной строки
-## (КРИТИЧНО) Не падать, если mypy не нашел исходники сторонних библиотек
-#ignore_missing_imports = true
-## Предупреждать, если функция возвращает Any, хотя не должна
-#warn_return_any = true
-## Предупреждать о неиспользуемых # type: ignore
-#warn_unused_ignores = true
