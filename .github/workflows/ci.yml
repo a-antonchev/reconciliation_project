@@ -33,20 +33,20 @@ jobs:
 
       # 3. Устанавливаем зависимости
       - name: Install dependencies
-        # установка набора зависимостей, которые зафиксированы в uv.lock + не ставим группу dev
-        run: uv sync --frozen --no-group dev
+        # установка набора зависимостей, которые зафиксированы в uv.lock + ставим группу dev
+        run: uv sync --frozen --group dev
 
       # 4. Проверяем код Ruff
       - name: Lint with Ruff
         run: |
           # Проверяем ошибки логики
-          uvx ruff check .
+          uv run ruff check .
           # Проверяем форматтером
-          uvx ruff format --check .
+          uv run ruff format --check .
 
       # 5. Прогоняем тесты через pytest
       - name: Run Pytest
-        run: uvx pytest ./tests/ -vv
+        run: uv run pytest ./tests/ -vv
 
       # 6. Проверка кода на уязвимости
       - name: Security check with Bandit
