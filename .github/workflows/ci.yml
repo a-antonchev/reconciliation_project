@@ -50,17 +50,11 @@ jobs:
 
       # 6. Проверка кода на уязвимости
       - name: Security check with Bandit
-        run: |
-          uv add bandit
-          uv run bandit -r . -ll -ii
-          # -ll проверка уязвимостей среднего и высокого уровня
-          # -r . рекурсивная проверка всех файлов в текущей папке
+        run: uvx bandit -c pyproject.toml -r .
 
       # 7. Проверка зависимостей на известные дыры (CVE)
       - name: Dependency security audit
-        run: |
-          uv add pip-audit
-          uv run pip-audit -r requirements.txt
+        run: uvx pip-audit -r requirements.txt
 
   # ==========================================
   # JOB 2: Проверка Инфраструктуры (Docker)
